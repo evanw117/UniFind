@@ -1,0 +1,61 @@
+@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* small helpers */
+:root { --radius: 16px; }
+html, body { height: 100%; }
+@import "tailwindcss";
+
+@theme inline {
+  --radius-base: 16px;
+  --shadow-card: 0 12px 30px rgba(2,6,23,.06);
+  --border: rgba(2,6,23,.08);
+  --brand: #4B7C9B;
+  --brand-2: #80AFC3;
+  --accent: #F5B700;
+  --ink-weak: #64748B; /* slate-500ish */
+}
+/* --- design tokens & helpers --- */
+@theme inline {
+  --brand: #4B7C9B;
+  --brand-2: #80AFC3;
+  --ink: #1E293B;
+  --ink-weak: #64748B;
+  --surface: #ffffff;
+  --bg: #F6FAFD; /* very light blue/gray */
+  --accent: #F5B700;
+  --border: rgba(2,6,23,.08);
+  --shadow-card: 0 10px 30px rgba(2,6,23,.06);
+  --radius: 16px;
+}
+
+body { background: var(--bg); }
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-card);
+}
+
+.glass {
+  background: rgba(255,255,255,.2);
+  border: 1px solid rgba(255,255,255,.35);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-radius: 999px;
+}
+@keyframes wave {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-wave {
+  animation: wave 10s linear infinite;
+}
