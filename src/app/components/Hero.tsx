@@ -6,7 +6,7 @@ import { Search } from "lucide-react";
 import React from "react"; // Explicit import for React if not using automatic JSX runtime
 
 export default function Hero() {
-  // Assuming the background color of the section following the Hero is white 
+  
   const nextSectionBgColor = "text-white"; 
 
   return (
@@ -36,7 +36,7 @@ export default function Hero() {
         </Container>
 
         {/* --- ANIMATED WAVE CONTAINER --- */}
-        {/* The clip container: sets height and clips the moving content */}
+       
         <div className="relative h-[120px] overflow-hidden">
             
             {/* Wave Track: Double the width (w-[200%]) and apply the custom animation class */}
