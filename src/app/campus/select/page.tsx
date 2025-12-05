@@ -54,7 +54,7 @@ export default function SelectCampusPage({ searchParams }: PageProps) {
           {CAMPUSES.map((c) => {
             const href = `/campus/${c.slug}/${type}`;
 
-            // ✅ Correct CTA per mode
+           
             const cta =
               type === "report"
                 ? `Report item at ${c.short}`
