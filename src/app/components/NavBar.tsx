@@ -73,7 +73,7 @@ export default function NavBar() {
               </Link>
             </li>
 
-            {/* ✔ UPDATED: Report items now goes directly to /report */}
+            
             <li>
               <Link
                 href="/report"
@@ -159,7 +159,7 @@ export default function NavBar() {
                 </Link>
               </li>
 
-              {/* ✔ UPDATED: Mobile version also goes to /report */}
+              {/*  Mobile version also goes to /report */}
               <li>
                 <Link
                   href="/report"
