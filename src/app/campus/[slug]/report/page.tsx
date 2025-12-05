@@ -59,7 +59,7 @@ export default function ReportItemPage() {
 
       setSuccess("Thanks! Your report was submitted.");
       form.reset();
-      // optional: navigate to a confirmation or list page
+      
       // router.push(`/campus/${slug}/found`);
     } catch (err: any) {
       setError(err?.message || "Something went wrong. Try again.");
