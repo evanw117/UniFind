@@ -1,4 +1,4 @@
-// src/app/login/page.tsx - OPTION 3: Clean, Card-Header Look (Logo Removed, OAuth Added)
+
 "use client";
 
 import { Auth } from "@supabase/auth-ui-react";
