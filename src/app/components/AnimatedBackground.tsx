@@ -2,8 +2,7 @@
 
 import React from 'react';
 
-// TypeScript note: We don't need to explicitly type props 
-// as this component takes none, but we use React.FC if preferred.
+
 
 const AnimatedBackground: React.FC = () => {
   // Array to generate 10 "floating" circles/particles
