@@ -20,7 +20,7 @@ const LOCATIONS = [
     'Canteen', 'Library', 'IT Center', 'Sports Hall', 'CR4'
 ];
 
-// --- MATCHES YOUR REAL SUPABASE TABLE ---
+
 interface LostItem {
     id: string;
     created_at: string;
