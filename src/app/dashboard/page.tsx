@@ -1,4 +1,4 @@
-// src/app/dashboard/page.tsx - OPTION C: TIERED VERTICAL LAYOUT (Stats Bar Position Adjusted)
+
 "use client";
 
 import { useEffect } from "react";
@@ -28,11 +28,10 @@ export default function DashboardPage() {
     router.push("/"); 
   };
   
-  // NOTE: Swapping out the `alert()` below for a simple console log,
-  // as alerts are forbidden in this environment.
+  
   const handlePasswordReset = () => {
       console.log(`Password reset link requested for ${user.email}`);
-      // In a real app, you would call supabase.auth.resetPasswordForEmail(user.email) here.
+      
   };
 
   if (isLoading || !user) {
@@ -62,7 +61,7 @@ export default function DashboardPage() {
     <div className="min-h-screen bg-white py-0"> 
       
       {/* --- WAVY HEADER SECTION --- */}
-      {/* Shadow was removed in the last revision */}
+     
       <header className="relative overflow-hidden bg-[linear-gradient(180deg,#4B7C9B,40%,#6ea4bf)] pt-16 pb-24 text-white">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
             <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight mb-2">
@@ -101,7 +100,7 @@ export default function DashboardPage() {
       </header>
 
 
-      {/* 🎯 FIX APPLIED: Changed -mt-12 to -mt-4 to move the content block (and the stats bar) lower. */}
+
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 -mt-4 relative z-20">
         
         {/* --- 1. STATS BAR (Full Width) --- */}
