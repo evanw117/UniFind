@@ -30,7 +30,7 @@ export default function DashboardPage() {
   
   
   const handlePasswordReset = () => {
-      console.log(`Password reset link requested for ${user.email}`);
+      console.log(`Password reset link requested for ${user?.email}`);
       
   };
 
