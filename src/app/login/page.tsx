@@ -72,9 +72,9 @@ export default function LoginPage() {
                     inputPadding: '12px 15px',
                 },
                 radii: {
-                    borderRadiusButton: '0.5rem', 
-                    borderRadiusInput: '0.5rem',
-                }
+  borderRadiusButton: '0.5rem', 
+  inputBorderRadius: '0.5rem', // ✅ Renamed to match the expected type
+}
               },
             },
           }}
