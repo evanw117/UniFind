@@ -1,45 +1,47 @@
-// src/components/AuthContext.tsx or src/app/AuthContext.tsx
+'use client';
 
-"use client";
-
-import { createContext, useContext, useEffect, useState } from 'react';
-import { supabase } from '@/lib/supabaseClient'; // Adjust path as necessary
+import React, { createContext, useContext, useEffect, useState } from 'react';
+import { supabase } from '@/lib/supabaseClient';
 import { Session, User } from '@supabase/supabase-js';
 
-// Define the shape of your context data
-interface AuthContextType {
+type AuthContextType = {
   session: Session | null;
   user: User | null;
   isLoading: boolean;
-}
+};
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+const AuthContext = createContext<AuthContextType>({
+  session: null,
+  user: null,
+  isLoading: true,
+});
 
-export function AuthProvider({ children }: { children: React.ReactNode }) {
+export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    if (!supabase) {
+      setIsLoading(false);
+      return;
+    }
+
     // 1. Get the initial session status
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
+    supabase.auth.getSession().then(({ data: { session: initialSession } }: any) => {
+      setSession(initialSession);
+      setUser(initialSession?.user ?? null);
       setIsLoading(false);
     });
 
-    // 2. Listen for future auth changes (login, logout, token refresh)
-    const { data: listener } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
-      }
-    );
+    // 2. Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event: string, currentSession: any) => {
+      setSession(currentSession);
+      setUser(currentSession?.user ?? null);
+      setIsLoading(false);
+    });
 
-    // Cleanup the listener when the component unmounts
-    return () => {
-      listener.subscription.unsubscribe();
-    };
+    return () => subscription.unsubscribe();
   }, []);
 
   return (
@@ -47,13 +49,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       {children}
     </AuthContext.Provider>
   );
-}
-
-// Custom hook to easily use the auth state
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
 };
+
+export const useAuth = () => useContext(AuthContext);
