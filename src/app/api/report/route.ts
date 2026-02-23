@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { NextResponse } from "next/server";
 import { supabase } from "@/lib/supabaseClient";
 
@@ -44,7 +46,9 @@ export async function POST(req: Request) {
 
       if (uploadError) throw uploadError;
 
-      imageUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/images/${fileName}`;
+      // Use the environment variable for the URL base
+      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+      imageUrl = `${supabaseUrl}/storage/v1/object/public/images/${fileName}`;
     }
 
     // Insert into correct table with correct columns
