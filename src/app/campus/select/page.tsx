@@ -1,112 +1,116 @@
+'use client';
+
+import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-
-type PageProps = {
-  searchParams?: { [key: string]: string | string[] | undefined };
-};
 
 const CAMPUSES = [
   {
     slug: "atu-galway",
     short: "ATU Galway",
     name: "Atlantic Technological University",
-    campus: "Dublin Road Campus",
+    campus: "Dublin Road",
     logo: "/ATU-Logo.png",
+    image: "/atu.png",
+    accent: "#007BA7",
   },
   {
     slug: "nuig-galway",
     short: "University of Galway",
-    name: "National University of Ireland, Galway",
-    campus: "University Road Campus",
+    name: "National University of Ireland",
+    campus: "University Road",
     logo: "/University_of_Galway_logo.png",
+    image: "/nui.png",
+    accent: "#A31F34",
   },
 ];
 
-export default function SelectCampusPage({ searchParams }: PageProps) {
-  // Normalize the mode from the query string
-  const raw = Array.isArray(searchParams?.type)
-    ? searchParams?.type[0]
-    : searchParams?.type;
+export default function SelectCampusPage({ searchParams }: any) {
+  const [activeHover, setActiveHover] = useState<string | null>(null);
 
-  const type: "lost" | "found" | "report" =
-    raw === "found" || raw === "report" ? raw : "lost";
-
-  const subtitle =
-    type === "lost"
-      ? "Choose where you lost the item"
-      : type === "found"
-      ? "Choose where you found the item"
-      : "Choose the campus where you want to report the item";
+  const raw = Array.isArray(searchParams?.type) ? searchParams?.type[0] : searchParams?.type;
+  const type: "lost" | "found" | "report" = raw === "found" || raw === "report" ? raw : "lost";
 
   return (
-    <main className="bg-slate-50">
-      <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 min-h-[80vh] flex flex-col items-center justify-center">
-        {/* Heading */}
-        <header className="text-center mb-6 sm:mb-10">
-          <h1 className="text-3xl sm:text-4xl font-semibold tracking-tight text-slate-800">
+    <main className="relative min-h-[90vh] w-full overflow-hidden bg-white flex items-center justify-center p-4">
+      
+      {/* BACKGROUND LAYER - Made more visible */}
+      <div className="absolute inset-0 z-0">
+        {CAMPUSES.map((c) => (
+          <div
+            key={c.slug}
+            className={`absolute inset-0 transition-all duration-700 ease-out ${
+              activeHover === c.slug ? "opacity-50 scale-110" : "opacity-0 scale-100"
+            }`}
+          >
+            <Image 
+              src={c.image} 
+              alt="" 
+              fill 
+              className="object-cover" 
+              priority 
+            />
+            {/* Reduced blur and slightly lighter white overlay to let image through */}
+            <div className="absolute inset-0 bg-white/40 backdrop-blur-[0.5px]" />
+          </div>
+        ))}
+        <div className={`absolute inset-0 bg-slate-50 transition-opacity duration-500 ${activeHover ? 'opacity-0' : 'opacity-100'}`} />
+      </div>
+
+      <div className="relative z-10 w-full max-w-5xl">
+        <header className="text-center mb-8">
+          <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-slate-900 drop-shadow-sm">
             Select Your Campus
           </h1>
-          <p className="mt-2 text-slate-500">{subtitle}</p>
+          <p className="text-slate-500 text-sm mt-1 font-medium">Choose a location to continue</p>
         </header>
 
-        {/* Campus cards */}
-        <section className="grid w-full gap-8 md:grid-cols-2">
+        <section className="grid w-full gap-6 md:grid-cols-2">
           {CAMPUSES.map((c) => {
             const href = `/campus/${c.slug}/${type}`;
-
-           
-            const cta =
-              type === "report"
-                ? `Report item at ${c.short}`
-                : type === "lost"
-                ? `See lost items at ${c.short}`
-                : `See found items at ${c.short}`;
+            const isHovered = activeHover === c.slug;
 
             return (
               <article
                 key={c.slug}
-                className="group rounded-2xl bg-white p-8 sm:p-10 shadow-sm ring-1 ring-slate-200/70 
-                           transition-all duration-300 hover:scale-[1.03] hover:shadow-xl hover:ring-sky-400/60"
+                onMouseEnter={() => setActiveHover(c.slug)}
+                onMouseLeave={() => setActiveHover(null)}
+                className="relative"
               >
-                <div className="flex flex-col items-center text-center">
-                  <Link href={href} prefetch={false} className="block" aria-label={`${cta}`}>
-                    <div className="relative h-28 w-28 sm:h-32 sm:w-32 mb-6">
-                      <Image
-                        src={c.logo}
-                        alt={`${c.short} logo`}
-                        fill
-                        className="object-contain rounded-xl"
-                        sizes="(max-width: 768px) 112px, 128px"
-                        priority
+                <Link href={href} className="block">
+                  <div className={`relative rounded-3xl transition-all duration-300 p-8 flex flex-col items-center text-center
+                    ${isHovered 
+                      ? "bg-white/95 shadow-2xl scale-[1.02] border-white" 
+                      : "bg-white/70 shadow-sm border-slate-100"} 
+                    backdrop-blur-md border-[1px] h-[360px] justify-center`}
+                  >
+                    {/* Logo Section */}
+                    <div className="relative h-24 w-24 mb-6 transition-transform duration-300 group-hover:scale-110">
+                      <Image 
+                        src={c.logo} 
+                        alt={c.short} 
+                        fill 
+                        className={`object-contain transition-all duration-500 ${isHovered ? 'grayscale-0' : 'grayscale opacity-70'}`} 
                       />
                     </div>
-                  </Link>
 
-                  <Link href={href} prefetch={false} className="block" aria-label={`${cta}`}>
-                    <h3 className="text-2xl font-semibold text-slate-800 hover:text-sky-700 transition">
-                      {c.short}
-                    </h3>
-                  </Link>
+                    <h3 className="text-2xl font-bold text-slate-800 tracking-tight">{c.short}</h3>
+                    <p className="text-slate-500 text-xs mt-1 mb-4 font-medium">{c.name}</p>
 
-                  <p className="mt-2 text-sm text-slate-500">{c.name}</p>
+                    <div className="flex items-center gap-1.5 bg-slate-100/90 px-3 py-1.5 rounded-full border border-slate-200/50 mb-6">
+                      <span className="text-xs font-semibold text-slate-700">📍 {c.campus}</span>
+                    </div>
 
-                  <div className="mt-3 flex items-center gap-2 text-sky-700">
-                    <span>📍</span>
-                    <span className="text-sm">{c.campus}</span>
+                    {/* Compact Button */}
+                    <div 
+                      className={`h-10 w-10 rounded-full flex items-center justify-center transition-all duration-300 shadow-md
+                      ${isHovered ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-2"}`}
+                      style={{ backgroundColor: c.accent }}
+                    >
+                      <span className="text-white text-lg font-bold">→</span>
+                    </div>
                   </div>
-
-                  <hr className="my-8 w-full border-slate-200" />
-
-                  <Link
-                    href={href}
-                    prefetch={false}
-                    className="w-full rounded-full bg-sky-700/90 px-6 py-3.5 text-center text-white font-semibold
-                               shadow-[0_6px_14px_rgba(2,24,43,0.15)] hover:bg-sky-600 transition
-                               focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-600"
-                  >
-                    {cta}
-                  </Link>
-                </div>
+                </Link>
               </article>
             );
           })}

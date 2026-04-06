@@ -1,61 +1,53 @@
 @import "tailwindcss";
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
 
-/* small helpers */
-:root { --radius: 16px; }
-html, body { height: 100%; }
-@import "tailwindcss";
-
-@theme inline {
-  --radius-base: 16px;
-  --shadow-card: 0 12px 30px rgba(2,6,23,.06);
-  --border: rgba(2,6,23,.08);
-  --brand: #4B7C9B;
-  --brand-2: #80AFC3;
-  --accent: #F5B700;
-  --ink-weak: #64748B; /* slate-500ish */
-}
-/* --- design tokens & helpers --- */
-@theme inline {
-  --brand: #4B7C9B;
-  --brand-2: #80AFC3;
-  --ink: #1E293B;
-  --ink-weak: #64748B;
-  --surface: #ffffff;
-  --bg: #F6FAFD; /* very light blue/gray */
-  --accent: #F5B700;
-  --border: rgba(2,6,23,.08);
-  --shadow-card: 0 10px 30px rgba(2,6,23,.06);
-  --radius: 16px;
+@theme {
+  --color-brand: #4B7C9B;
+  --color-brand-2: #80AFC3;
+  --color-accent: #F5B700;
 }
 
-body { background: var(--bg); }
-
-.card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow-card);
-}
-
-.glass {
-  background: rgba(255,255,255,.2);
-  border: 1px solid rgba(255,255,255,.35);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  border-radius: 999px;
-}
-@keyframes wave {
-  0% {
-    transform: translateX(0);
-  }
-  100% {
-    transform: translateX(-50%);
+@layer base {
+  html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    width: 100%;
+    overflow-x: hidden;
   }
 }
 
-.animate-wave {
-  animation: wave 10s linear infinite;
+/* 1. The Wave Animation */
+@keyframes wave-animation {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+/* 2. The Icon Entrance Animation */
+@keyframes icon-entrance {
+  0% { 
+    opacity: 0; 
+    transform: scale(0.4) translateY(20px); 
+  }
+  100% { 
+    opacity: 1; 
+    transform: scale(1) translateY(0); 
+  }
+}
+
+@layer utilities {
+  .animate-wave {
+    animation: wave-animation 15s linear infinite !important;
+  }
+
+  .animate-icon-arc {
+    opacity: 0;
+    animation: icon-entrance 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+  }
+
+  .glass {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 999px;
+  }
 }

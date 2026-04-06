@@ -1,4 +1,3 @@
-// src/app/components/NavBar.tsx
 "use client";
 
 import { useState } from "react";
@@ -22,19 +21,16 @@ export default function NavBar() {
   const AuthLinks = () => {
     if (session) {
       return (
-        <ul className="flex items-center gap-6 text-slate-700 font-medium">
+        <ul className="flex items-center gap-6 text-slate-700 font-medium -translate-y-6">
           <li>
-            <Link
-              href="/dashboard"
-              className="hover:text-slate-900 transition-colors"
-            >
+            <Link href="/dashboard" className="hover:text-slate-900 transition-colors">
               Profile
             </Link>
           </li>
           <li>
             <button
               onClick={handleSignOut}
-              className="rounded-lg bg-red-500 text-white px-4 py-2 font-bold hover:bg-red-600 transition"
+              className="rounded-lg bg-red-500 text-white px-4 py-2 font-bold hover:bg-red-600 transition flex items-center justify-center shadow-sm"
             >
               Sign Out
             </button>
@@ -47,7 +43,7 @@ export default function NavBar() {
           <li>
             <Link
               href="/login"
-              className="rounded-lg bg-[#F5B700] px-4 py-2 font-bold text-black hover:brightness-105 transition"
+              className="rounded-lg bg-[#F5B700] px-5 py-2.5 font-bold text-black hover:brightness-105 transition flex items-center justify-center -translate-y-6 shadow-sm"
             >
               Sign in
             </Link>
@@ -58,166 +54,92 @@ export default function NavBar() {
   };
 
   return (
-    <header className="sticky top-0 z-50 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/70 border-b border-slate-200">
-      <Container className="h-16 grid grid-cols-3 items-center">
-        
-        {/* LEFT NAV (DESKTOP) */}
-        <nav className="hidden md:block">
-          <ul className="flex items-center gap-8 text-slate-700 font-medium">
-            <li>
-              <Link
-                href="/campus/select/lost"
-                className="hover:text-slate-900 transition-colors"
-              >
-                Lost items
-              </Link>
-            </li>
-
+    <header className="fixed top-1 left-0 right-0 z-50 px-4">
+      <div className="mx-auto max-w-6xl bg-white/95 backdrop-blur-md rounded-2xl border border-slate-200 shadow-lg overflow-hidden">
+        <Container className="h-16 px-8">
+          <div className="grid grid-cols-3 items-center h-full w-full">
             
-            <li>
-              <Link
-                href="/report"
-                className="hover:text-slate-900 transition-colors"
-              >
-                Report items
-              </Link>
-            </li>
+            {/* 1. LEFT NAV - Nudged up slightly with -translate-y-1 */}
+            <nav className="hidden md:flex items-center h-full">
+              <ul className="flex items-center gap-8 text-slate-700 font-medium -translate-y-6">
+                <li>
+                  <Link href="/campus/select/lost" className="hover:text-slate-900 transition-colors">
+                    Lost items
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/report" className="hover:text-slate-900 transition-colors">
+                    Report items
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/howitworks" className="hover:text-slate-900 transition-colors">
+                    How it works
+                  </Link>
+                </li>
+              </ul>
+            </nav>
 
-            <li>
-              <Link
-                href="/howitworks"
-                className="hover:text-slate-900 transition-colors"
-              >
-                How it works
-              </Link>
-            </li>
-          </ul>
-        </nav>
+            {/* 2. CENTER LOGO - Remains as is */}
+            
+<div className="flex justify-center items-center h-full -translate-y-3">
+  <Link href="/" className="flex items-center hover:opacity-80 transition-opacity">
+    <Image
+      src="/updatedlogo.png"
+      alt="UniFind Logo"
+      width={115}
+      height={115}
+      priority
+      className="object-contain"
+    />
+  </Link>
+</div>
 
-        {/* CENTER LOGO */}
-        <div className="flex justify-center">
-          <Link href="/" className="flex items-center gap-2">
-            <Image
-              src="/updatedlogo.png"
-              alt="UniFind Logo"
-              width={98}
-              height={98}
-              priority
-              className="object-contain"
-            />
-            <span className="sr-only">UniFind</span>
-          </Link>
-        </div>
+            {/* 3. RIGHT NAV - Nudged up slightly with -translate-y-1 */}
+            <nav className="hidden md:flex justify-end items-center h-full gap-8">
+              <ul className="flex items-center gap-8 text-slate-700 font-medium -translate-y-6">
+                <li>
+                  <Link href="/rewards" className="hover:text-slate-900 transition-colors">
+                    Rewards
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/contact" className="hover:text-slate-900 transition-colors">
+                    Contact
+                  </Link>
+                </li>
+              </ul>
+              <div className="flex items-center">
+                <AuthLinks />
+              </div>
+            </nav>
 
-        {/* RIGHT NAV (DESKTOP) */}
-        <nav className="hidden md:flex justify-end">
-          <ul className="flex items-center gap-6 text-slate-700 font-medium">
-            <li>
-              <Link
-                href="/rewards"
-                className="hover:text-slate-900 transition-colors"
-              >
-                Rewards
-              </Link>
-            </li>
-            <li>
-              <Link
-                href="/contact"
-                className="hover:text-slate-900 transition-colors"
-              >
-                Contact
-              </Link>
-            </li>
-
-            <AuthLinks />
-          </ul>
-        </nav>
-
-        {/* MOBILE MENU BUTTON */}
-        <button
-          onClick={() => setOpen((v) => !v)}
-          className="md:hidden justify-self-end rounded-md p-2 text-slate-700 focus:outline-none"
-          aria-label="Open menu"
-          aria-expanded={open}
-        >
-          ☰
-        </button>
-      </Container>
+            {/* MOBILE TOGGLE */}
+            <button
+              onClick={() => setOpen((v) => !v)}
+              className="md:hidden justify-self-end flex items-center h-full text-slate-700"
+            >
+              <span className="text-2xl">{open ? "✕" : "☰"}</span>
+            </button>
+          </div>
+        </Container>
+      </div>
 
       {/* MOBILE MENU */}
       {open && (
-        <div className="md:hidden border-t border-slate-200 bg-white">
-          <nav className="px-4 py-3">
-            <ul className="flex flex-col gap-3 text-slate-700 font-medium">
-              <li>
-                <Link
-                  href="/campus/select/lost"
-                  onClick={() => setOpen(false)}
-                  className="block py-1"
-                >
-                  Lost items
-                </Link>
-              </li>
-
-              {/*  Mobile version also goes to /report */}
-              <li>
-                <Link
-                  href="/report"
-                  onClick={() => setOpen(false)}
-                  className="block py-1"
-                >
-                  Report items
-                </Link>
-              </li>
-
-              <li>
-                <Link
-                  href="/howitworks"
-                  onClick={() => setOpen(false)}
-                  className="block py-1"
-                >
-                  How it works
-                </Link>
-              </li>
-
-              <li>
-                <Link
-                  href="/contact"
-                  onClick={() => setOpen(false)}
-                  className="block py-1"
-                >
-                  Contact
-                </Link>
-              </li>
-
-              <li className="pt-2">
+        <div className="md:hidden mt-2 mx-auto max-w-6xl bg-white rounded-2xl p-6 shadow-2xl border border-slate-100 animate-in slide-in-from-top-4 duration-200">
+          <nav>
+            <ul className="flex flex-col gap-4 text-slate-700 font-medium text-center">
+              <li><Link href="/campus/select/lost" onClick={() => setOpen(false)}>Lost items</Link></li>
+              <li><Link href="/report" onClick={() => setOpen(false)}>Report items</Link></li>
+              <li><Link href="/howitworks" onClick={() => setOpen(false)}>How it works</Link></li>
+              <li><Link href="/rewards" onClick={() => setOpen(false)}>Rewards</Link></li>
+              <li><Link href="/contact" onClick={() => setOpen(false)}>Contact</Link></li>
+              <li className="pt-2 border-t border-slate-50">
                 {session ? (
-                  <>
-                    <Link
-                      href="/dashboard"
-                      onClick={() => setOpen(false)}
-                      className="w-full block text-center rounded-lg bg-blue-500 text-white px-4 py-2 font-bold transition mb-2"
-                    >
-                      Dashboard
-                    </Link>
-                    <button
-                      onClick={() => {
-                        setOpen(false);
-                        handleSignOut();
-                      }}
-                      className="w-full block text-center rounded-lg bg-red-500 text-white px-4 py-2 font-bold transition"
-                    >
-                      Sign Out
-                    </button>
-                  </>
+                  <button onClick={handleSignOut} className="w-full bg-red-500 text-white py-3 rounded-xl font-bold">Sign Out</button>
                 ) : (
-                  <Link
-                    href="/login"
-                    onClick={() => setOpen(false)}
-                    className="w-full block text-center rounded-lg bg-[#F5B700] px-4 py-2 font-bold text-black hover:brightness-105 transition"
-                  >
-                    Sign in
-                  </Link>
+                  <Link href="/login" onClick={() => setOpen(false)} className="block w-full bg-[#F5B700] py-3 rounded-xl font-bold text-black text-center">Sign in</Link>
                 )}
               </li>
             </ul>
