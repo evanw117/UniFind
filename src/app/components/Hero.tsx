@@ -17,7 +17,7 @@ export default function Hero() {
   ];
 
   return (
-    <section className="relative min-h-screen flex flex-col justify-between bg-[linear-gradient(180deg,#4B7C9B_0%,#6ea4bf_100%)] overflow-hidden">
+    <section className="relative -mt-24 min-h-[calc(100vh-6rem)] pt-24 flex flex-col justify-between bg-[linear-gradient(180deg,#4B7C9B_0%,#6ea4bf_100%)] overflow-hidden">
       
       {/* 1. Main Content Area */}
       <div className="flex-grow flex flex-col justify-center items-center">
@@ -50,7 +50,7 @@ export default function Hero() {
                   }}
                 >
                   <div className={`${item.color} filter drop-shadow-[0_10px_10px_rgba(0,0,0,0.3)] hover:scale-110 transition-transform cursor-pointer pointer-events-auto`}>
-                    {React.cloneElement(item.component as React.ReactElement, { 
+                    {React.cloneElement(item.component as React.ReactElement<{size?: number; strokeWidth?: number}>, { 
                       size: 60, 
                       strokeWidth: 1.2 
                     })}

@@ -3,7 +3,17 @@ import { createClient } from '@supabase/supabase-js'
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
 
-// We add a check here so it doesn't crash during the Vercel build
-export const supabase = (supabaseUrl && supabaseAnonKey) 
+// Check if we have valid URLs (not placeholder values)
+const isValidUrl = (url: string) => {
+  try {
+    new URL(url);
+    return url.startsWith('http://') || url.startsWith('https://');
+  } catch {
+    return false;
+  }
+}
+
+// Only create client if we have valid environment variables
+export const supabase = (supabaseUrl && supabaseAnonKey && isValidUrl(supabaseUrl))
   ? createClient(supabaseUrl, supabaseAnonKey)
-  : (null as any) // If keys are missing during build, don't crash, just return null
+  : null

@@ -52,43 +52,50 @@ export default function LoginPage() {
             </p>
         </div>
 
-        <Auth
-          supabaseClient={supabase}
-          appearance={{
-            theme: ThemeSupa,
-            variables: {
-              default: {
-                colors: {
-                  // Primary color (buttons, links, focus outline) matching UniFind blue/teal
-                  brand: '#4b7c9bff', 
-                  // Use the accent color for hover state
-                  brandAccent: '#3710d5ff', // Changed this to a highly visible color
-                  inputBackground: '#f8fafd',
-                  // Ensure text is white on the blue primary button
-                  brandButtonText: 'white', 
+        {supabase ? (
+          <Auth
+            supabaseClient={supabase}
+            appearance={{
+              theme: ThemeSupa,
+              variables: {
+                default: {
+                  colors: {
+                    // Primary color (buttons, links, focus outline) matching UniFind blue/teal
+                    brand: '#4b7c9bff', 
+                    // Use the accent color for hover state
+                    brandAccent: '#3710d5ff', // Changed this to a highly visible color
+                    inputBackground: '#f8fafd',
+                    // Ensure text is white on the blue primary button
+                    brandButtonText: 'white', 
+                  },
+                  space: {
+                      buttonPadding: '12px 18px', 
+                      inputPadding: '12px 15px',
+                  },
+                  radii: {
+    borderRadiusButton: '0.5rem', 
+    inputBorderRadius: '0.5rem', // ✅ Renamed to match the expected type
+  }
                 },
-                space: {
-                    buttonPadding: '12px 18px', 
-                    inputPadding: '12px 15px',
-                },
-                radii: {
-  borderRadiusButton: '0.5rem', 
-  inputBorderRadius: '0.5rem', // ✅ Renamed to match the expected type
-}
               },
-            },
-          }}
-          localization={{
-            variables: {
-                // Made the labels more formal
-                sign_in: { email_label: 'University Email Address', password_label: 'Password' }
-            }
-          }}
-          
-          // 🎯 FIX: Added 'azure' for Microsoft/Outlook sign-in
-          providers={['google', 'azure']} 
-          redirectTo={`${window.location.origin}/dashboard`} 
-        />
+            }}
+            localization={{
+              variables: {
+                  // Made the labels more formal
+                  sign_in: { email_label: 'University Email Address', password_label: 'Password' }
+              }
+            }}
+            
+            // 🎯 FIX: Added 'azure' for Microsoft/Outlook sign-in
+            providers={['google', 'azure']} 
+            redirectTo={`${window.location.origin}/dashboard`}
+          />
+        ) : (
+          <div className="text-center p-4 bg-red-50 border border-red-200 rounded-lg">
+            <p className="text-red-700 font-medium">Authentication service unavailable</p>
+            <p className="text-red-600 text-sm mt-1">Please check your environment configuration.</p>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -1,7 +1,7 @@
 // src/app/contact/page.tsx
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Mail, Send } from 'lucide-react'; 
 import { supabase } from '@/lib/supabaseClient'; 
 
@@ -15,6 +15,22 @@ export default function ContactPage() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [statusMessage, setStatusMessage] = useState('');
 
+    useEffect(() => {
+        if (typeof window === 'undefined') return;
+
+        const params = new URLSearchParams(window.location.search);
+        const subject = params.get('subject') ?? '';
+        const message = params.get('message') ?? '';
+
+        if (subject || message) {
+            setFormData(prev => ({
+                ...prev,
+                subject: subject || prev.subject,
+                message: message || prev.message,
+            }));
+        }
+    }, []);
+
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
@@ -26,6 +42,12 @@ export default function ContactPage() {
         
         setIsSubmitting(true);
         setStatusMessage('Sending message...');
+
+        if (!supabase) {
+            setStatusMessage('Database connection not available. Please try again later.');
+            setIsSubmitting(false);
+            return;
+        }
 
         // REAL SUPABASE SUBMISSION LOGIC
         const { error } = await supabase

@@ -175,6 +175,27 @@ const TopFilterBar: React.FC<{ filters: Filters, setFilters: React.Dispatch<Reac
 
 
 // --- MAIN PAGE ---
+const CAMPUS_SLUG_ALIASES: Record<string, string[]> = {
+    'atu-galway': ['atu-galway', 'atu galway'],
+    'nuig-galway': ['nuig-galway', 'nuig galway', 'nuig'],
+    'nuig': ['nuig', 'nuig-galway', 'nuig galway'],
+};
+
+const normalizeCampusSlug = (slug: string) => {
+    const cleaned = slug.trim().toLowerCase();
+    const aliases = CAMPUS_SLUG_ALIASES[cleaned];
+    if (aliases) return aliases;
+    const normalizedSpace = cleaned.replace(/-/g, ' ');
+    return [cleaned, normalizedSpace];
+};
+
+const getCampusDisplayName = (slug: string) => {
+    const cleaned = slug.trim().toLowerCase();
+    if (cleaned === 'atu-galway' || cleaned === 'atu galway') return 'ATU Galway';
+    if (cleaned === 'nuig-galway' || cleaned === 'nuig galway' || cleaned === 'nuig') return 'University of Galway';
+    return 'Campus Lost & Found';
+};
+
 export default function CampusLostItemsPage() {
     const params = useParams();
     const campusSlug = params.slug as string;
@@ -184,21 +205,32 @@ export default function CampusLostItemsPage() {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
+    const campusSlugAliases = normalizeCampusSlug(campusSlug || '');
+
     // Fetch Supabase Data
-    const fetchItems = async (slug: string) => {
+    const fetchItems = async (slug: string, aliases: string[]) => {
         setIsLoading(true);
         setError(null);
+
+        if (!supabase) {
+            setError('Database connection not available. Please check your environment configuration.');
+            setItems([]);
+            setIsLoading(false);
+            return;
+        }
 
         const { data, error } = await supabase
             .from('lost_and_found_items')
             .select('*')
-            .eq('campus_slug', slug)
+            .in('campus_slug', aliases)
             .order('date_reported', { ascending: false });
 
         if (error) {
-            setError(error.message);
+            console.error('Supabase error:', error);
+            setError(`Database error: ${error.message}`);
             setItems([]);
         } else {
+            console.log('Fetched items:', data);
             setItems(data as LostItem[]);
         }
 
@@ -207,9 +239,9 @@ export default function CampusLostItemsPage() {
 
     useEffect(() => {
         if (campusSlug) {
-            fetchItems(campusSlug);
+            fetchItems(campusSlug, campusSlugAliases);
         }
-    }, [campusSlug]);
+    }, [campusSlug, campusSlugAliases]);
 
     // Filter Logic
     const filteredItems = useMemo(() => {
@@ -233,14 +265,12 @@ export default function CampusLostItemsPage() {
         .sort((a, b) => new Date(b.date_reported).getTime() - new Date(a.date_reported).getTime());
     }, [filters, items]);
 
-    const campusName = campusSlug === 'atu-galway' ? 'ATU Galway' :
-                       campusSlug === 'nuig-galway' ? 'University of Galway' :
-                       'Campus Lost & Found';
+    const campusName = getCampusDisplayName(campusSlug);
 
     const fallbackImage = 'https://placehold.co/200x120/E5E7EB/374151?text=No+Image';
 
     return (
-        <div className="bg-[#F6FAFD] min-h-screen">
+        <div className="-mt-24 min-h-[calc(100vh-6rem)] bg-[#F6FAFD] pt-24">
             <main className="max-w-7xl mx-auto p-4">
 
                 {/* Title */}
@@ -290,51 +320,57 @@ export default function CampusLostItemsPage() {
                             const isLost = item.status === true;
 
                             return (
-                                <article key={item.id} className="bg-white rounded-xl shadow hover:shadow-lg overflow-hidden flex">
-                                    
-                                    {/* Image */}
-                                    <div className="w-1/3 h-40 bg-slate-100 relative">
-                                        <img 
-                                            src={item.image_url || fallbackImage}
-                                            alt={item.title}
-                                            className="w-full h-full object-cover"
-                                            onError={(e) => { e.currentTarget.src = fallbackImage }}
-                                        />
-                                        <div className={`absolute top-2 left-2 px-3 py-1 rounded-full text-xs font-bold text-white ${
-                                            isLost ? 'bg-red-600' : 'bg-emerald-600'
-                                        }`}>
-                                            {isLost ? 'MISSING' : 'FOUND'}
-                                        </div>
-                                    </div>
-
-                                    {/* Content */}
-                                    <div className="p-4 flex-1">
-                                        <h3 className="text-lg font-bold text-slate-900 mb-2">{item.title}</h3>
-
-                                        <div className="flex items-center text-sm text-slate-600 mb-1">
-                                            <LocateFixed className="w-4 h-4 mr-1" />
-                                            {item.location}
-                                        </div>
-
-                                        <div className="flex items-center text-sm text-slate-600 mb-3">
-                                            {category && <category.icon className={`w-4 h-4 ${category.color} mr-1`} />}
-                                            {category?.name || 'Other'}
-                                        </div>
-
-                                        <div className="flex justify-between items-center border-t pt-2 text-xs text-slate-500">
-                                            <span className="flex items-center">
-                                                <Clock className="w-3 h-3 mr-1" />
-                                                Reported {new Date(item.date_reported).toLocaleDateString()}
-                                            </span>
-
-                                            <button className={`px-4 py-1 rounded-full text-sm font-semibold ${
-                                                isLost ? 'bg-[#4B7C9B] text-white' : 'bg-[#F5B700] text-slate-900'
+                                <Link
+                                    key={item.id}
+                                    href={`/campus/${encodeURIComponent(campusSlug)}/lost/${encodeURIComponent(item.id)}`}
+                                    className="group"
+                                >
+                                    <article className="bg-white rounded-xl shadow hover:shadow-lg overflow-hidden flex cursor-pointer">
+                                        
+                                        {/* Image */}
+                                        <div className="w-1/3 h-40 bg-slate-100 relative">
+                                            <img 
+                                                src={item.image_url || fallbackImage}
+                                                alt={item.title}
+                                                className="w-full h-full object-cover"
+                                                onError={(e) => { e.currentTarget.src = fallbackImage }}
+                                            />
+                                            <div className={`absolute top-2 left-2 px-3 py-1 rounded-full text-xs font-bold text-white ${
+                                                isLost ? 'bg-red-600' : 'bg-emerald-600'
                                             }`}>
-                                                {isLost ? 'I Found This' : 'Claim Item'}
-                                            </button>
+                                                {isLost ? 'MISSING' : 'FOUND'}
+                                            </div>
                                         </div>
-                                    </div>
-                                </article>
+
+                                        {/* Content */}
+                                        <div className="p-4 flex-1">
+                                            <h3 className="text-lg font-bold text-slate-900 mb-2">{item.title}</h3>
+
+                                            <div className="flex items-center text-sm text-slate-600 mb-1">
+                                                <LocateFixed className="w-4 h-4 mr-1" />
+                                                {item.location}
+                                            </div>
+
+                                            <div className="flex items-center text-sm text-slate-600 mb-3">
+                                                {category && <category.icon className={`w-4 h-4 ${category.color} mr-1`} />}
+                                                {category?.name || 'Other'}
+                                            </div>
+
+                                            <div className="flex justify-between items-center border-t pt-2 text-xs text-slate-500">
+                                                <span className="flex items-center">
+                                                    <Clock className="w-3 h-3 mr-1" />
+                                                    Reported {new Date(item.date_reported).toLocaleDateString()}
+                                                </span>
+
+                                                <span className={`inline-flex px-4 py-1 rounded-full text-sm font-semibold transition ${
+                                                    isLost ? 'bg-[#4B7C9B] text-white' : 'bg-[#F5B700] text-slate-900'
+                                                }`}>
+                                                    View details
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </article>
+                                </Link>
                             );
                         })}
 

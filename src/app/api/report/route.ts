@@ -2,13 +2,120 @@ export const dynamic = "force-dynamic";
 
 import { NextResponse } from "next/server";
 import { supabase } from "@/lib/supabaseClient";
+import { classifyItemValue } from "@/lib/itemClassification";
+import { calculateAwardPoints } from "@/lib/rewardConfig";
+import { createServerSupabaseClient } from "@/lib/serverSupabase";
+
+const STORAGE_BUCKET =
+  process.env.SUPABASE_STORAGE_BUCKET ||
+  process.env.NEXT_PUBLIC_SUPABASE_STORAGE_BUCKET ||
+  "Lost and found images";
+
+type VerifiedUser = {
+  id: string;
+  email?: string | null;
+};
+
+function getErrorMessage(error: unknown): string {
+  if (error instanceof Error) {
+    return error.message;
+  }
+
+  if (error && typeof error === "object") {
+    const maybeMessage = "message" in error ? error.message : null;
+    const maybeDetails = "details" in error ? error.details : null;
+    const maybeHint = "hint" in error ? error.hint : null;
+    const maybeCode = "code" in error ? error.code : null;
+
+    return [
+      typeof maybeMessage === "string" ? maybeMessage : null,
+      typeof maybeDetails === "string" ? maybeDetails : null,
+      typeof maybeHint === "string" ? `Hint: ${maybeHint}` : null,
+      typeof maybeCode === "string" ? `Code: ${maybeCode}` : null,
+    ]
+      .filter(Boolean)
+      .join(" | ") || "Unknown server error.";
+  }
+
+  return "Unknown server error.";
+}
+
+async function verifyAccessToken(accessToken: string | null): Promise<VerifiedUser | null> {
+  if (!supabase || !accessToken) {
+    return null;
+  }
+
+  const { data, error } = await supabase.auth.getUser(accessToken);
+
+  if (error || !data.user) {
+    return null;
+  }
+
+  return {
+    id: data.user.id,
+    email: data.user.email,
+  };
+}
+
+async function awardReportPoints(user: VerifiedUser | null): Promise<number> {
+  if (!supabase || !user) {
+    return 0;
+  }
+
+  const awardPoints = calculateAwardPoints("report");
+  const { data: existingUser, error: selectError } = await supabase
+    .from("users")
+    .select("points")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  if (selectError) {
+    throw selectError;
+  }
+
+  if (existingUser) {
+    const { error: updateError } = await supabase
+      .from("users")
+      .update({ points: (existingUser.points ?? 0) + awardPoints })
+      .eq("id", user.id);
+
+    if (updateError) {
+      throw updateError;
+    }
+
+    return awardPoints;
+  }
+
+  const { error: insertError } = await supabase.from("users").insert([
+    {
+      id: user.id,
+      points: awardPoints,
+    },
+  ]);
+
+  if (insertError) {
+    throw insertError;
+  }
+
+  return awardPoints;
+}
 
 export async function POST(req: Request) {
   try {
+    if (!supabase) {
+      return NextResponse.json(
+        {
+          error:
+            "Database connection not available. Please check your environment configuration.",
+        },
+        { status: 500 },
+      );
+    }
+
     const formData = await req.formData();
 
     const campus = formData.get("campus")?.toString();
-    const status = formData.get("status")?.toString(); // "lost" or "found"
+    const status = formData.get("status")?.toString();
     const title = formData.get("title")?.toString();
     const description = formData.get("description")?.toString();
     const category = formData.get("category")?.toString();
@@ -16,65 +123,130 @@ export async function POST(req: Request) {
     const location = formData.get("location")?.toString();
     const contactName = formData.get("contactName")?.toString();
     const contactEmail = formData.get("contactEmail")?.toString();
+    const accessToken = formData.get("accessToken")?.toString() ?? null;
     const imageFile = formData.get("image") as File | null;
+    const authedSupabase = accessToken ? createServerSupabaseClient(accessToken) : null;
+    const insertClient = authedSupabase ?? supabase;
 
-    // Validation
     if (!campus || !status || !title || !description || !category || !dateFound || !location) {
-      return NextResponse.json(
-        { error: "Missing required fields" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
-    // Convert status (lost/found) → boolean
-    const statusBool = status === "found";
+    const isFoundItem = status === "found";
+    const verifiedUser = await verifyAccessToken(accessToken);
+    let imageUrl: string | null = null;
+    let imageUploadWarning: string | null = null;
 
-    let imageUrl = null;
-
-    // Upload image if selected
     if (imageFile && imageFile.size > 0) {
       const fileName = `${Date.now()}-${imageFile.name}`;
       const arrayBuffer = await imageFile.arrayBuffer();
       const fileBuffer = Buffer.from(arrayBuffer);
 
       const { error: uploadError } = await supabase.storage
-        .from("images")
+        .from(STORAGE_BUCKET)
         .upload(fileName, fileBuffer, {
           contentType: imageFile.type,
           upsert: true,
         });
 
-      if (uploadError) throw uploadError;
-
-      // Use the environment variable for the URL base
-      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-      imageUrl = `${supabaseUrl}/storage/v1/object/public/images/${fileName}`;
+      if (uploadError) {
+        imageUploadWarning = `Image upload failed for bucket "${STORAGE_BUCKET}": ${uploadError.message}`;
+      } else {
+        const {
+          data: { publicUrl },
+        } = supabase.storage.from(STORAGE_BUCKET).getPublicUrl(fileName);
+        imageUrl = publicUrl;
+      }
     }
 
-    // Insert into correct table with correct columns
-    const { error } = await supabase.from("lost_and_found_items").insert([
+    const classification = isFoundItem
+      ? await classifyItemValue({
+          title,
+          description,
+          imageUrl,
+        })
+      : null;
+
+    const storedStatus = status === "lost";
+
+    const { error: insertError } = await insertClient.from("lost_and_found_items").insert([
       {
         campus_slug: campus,
-        status: statusBool,               // BOOLEAN (true = found, false = lost)
+        status: storedStatus,
         title,
         description,
         category,
         location,
-        date_reported: dateFound,         // Your column name is date_reported
+        date_reported: dateFound,
         contact_name: contactName,
         contact_email: contactEmail,
         image_url: imageUrl,
+        reporter_user_id: verifiedUser?.id ?? null,
+        item_value_tier: classification?.tier ?? null,
+        estimated_points: classification?.estimated_points ?? null,
+        classification_reason: classification?.reason ?? null,
       },
     ]);
 
-    if (error) throw error;
+    if (insertError) {
+      throw insertError;
+    }
 
-    return NextResponse.json({ success: true }, { status: 200 });
+    let awardedPoints = 0;
+    let pointsWarning: string | null = null;
 
-  } catch (err: any) {
+    if (isFoundItem && verifiedUser && authedSupabase) {
+      const awardPoints = calculateAwardPoints("report");
+      const { data: existingUser, error: selectError } = await authedSupabase
+        .from("users")
+        .select("points")
+        .eq("id", verifiedUser.id)
+        .maybeSingle();
+
+      if (selectError) {
+        pointsWarning = `Reward points could not be updated: ${selectError.message}`;
+      } else if (existingUser) {
+        const { error: updateError } = await authedSupabase
+          .from("users")
+          .update({ points: (existingUser.points ?? 0) + awardPoints })
+          .eq("id", verifiedUser.id);
+
+        if (updateError) {
+          pointsWarning = `Reward points could not be updated: ${updateError.message}`;
+        } else {
+          awardedPoints = awardPoints;
+        }
+      } else {
+        const { error: insertUserError } = await authedSupabase.from("users").insert([
+          {
+            id: verifiedUser.id,
+            points: awardPoints,
+          },
+        ]);
+
+        if (insertUserError) {
+          pointsWarning = `Reward points could not be updated: ${insertUserError.message}`;
+        } else {
+          awardedPoints = awardPoints;
+        }
+      }
+    }
+
     return NextResponse.json(
-      { error: err.message || "Upload failed" },
-      { status: 500 }
+      {
+        success: true,
+        awarded_points: awardedPoints,
+        estimated_return_points: classification?.estimated_points ?? null,
+        item_value_tier: classification?.tier ?? null,
+        classification_reason: classification?.reason ?? null,
+        warning: imageUploadWarning ?? pointsWarning,
+        image_upload_warning: imageUploadWarning,
+        points_warning: pointsWarning,
+      },
+      { status: 200 },
     );
+  } catch (err) {
+    const message = getErrorMessage(err);
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

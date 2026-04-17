@@ -26,7 +26,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className="bg-[#F8FAFC] text-[#1E293B]">
-      <body className={inter.className}>
+      <body className={`${inter.className} pt-24`}>
        
         <AuthProvider>
           {/* Global NavBar on every page */}

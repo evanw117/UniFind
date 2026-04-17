@@ -14,6 +14,10 @@ export default function NavBar() {
   const router = useRouter();
 
   const handleSignOut = async () => {
+    if (!supabase) {
+      console.error('Database connection not available');
+      return;
+    }
     await supabase.auth.signOut();
     router.push("/");
   };
