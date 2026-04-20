@@ -205,13 +205,30 @@ export default function MyReportsPage() {
     setDeletingId(reportId);
     setError(null);
 
-    const { error: deleteError } = await supabase
-      .from("lost_and_found_items")
-      .delete()
-      .eq("id", reportId);
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
 
-    if (deleteError) {
-      setError(deleteError.message);
+    if (!session?.access_token) {
+      setError("You must be signed in to delete a report.");
+      setDeletingId(null);
+      return;
+    }
+
+    const response = await fetch(`/api/reports/${reportId}`, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        accessToken: session.access_token,
+      }),
+    });
+
+    const result = (await response.json().catch(() => null)) as { error?: string } | null;
+
+    if (!response.ok) {
+      setError(result?.error || "Could not delete this report.");
       setDeletingId(null);
       return;
     }

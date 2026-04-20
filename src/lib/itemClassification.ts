@@ -15,6 +15,22 @@ type OpenAIClassification = {
 
 const MODEL = "gpt-4.1-mini";
 const FALLBACK_TIER: ItemValueTier = "medium";
+const LOW_VALUE_BAG_KEYWORDS = [
+  "bag",
+  "backpack",
+  "schoolbag",
+  "school bag",
+  "rucksack",
+  "tote",
+  "tote bag",
+  "duffel",
+  "duffle",
+  "gym bag",
+  "lunch bag",
+  "book bag",
+  "drawstring bag",
+  "satchel",
+];
 
 function buildPrompt({
   title,
@@ -30,8 +46,10 @@ function buildPrompt({
     "Choose exactly one tier from: low, medium, high.",
     "Do not assign points.",
     "Consider replacement value, sensitivity, and importance to a student.",
-    "Wallets, IDs, phones, laptops, tablets, and expensive electronics are usually medium or high depending on context.",
-    "Clothing, water bottles, notebooks, and common accessories are usually low unless the description clearly indicates premium value.",
+    "HIGH: Laptops, tablets, expensive phones (iPhone/Samsung flagship), premium electronics, gaming devices.",
+    "MEDIUM: AirPods Pro/Max, budget phones, Kindle, portable chargers, quality headphones, designer wallets, watches, premium textbooks.",
+    "LOW: Backpacks, bags, clothing (even branded), water bottles, notebooks, common accessories, AirPods (standard), earbuds, pens, keys.",
+    "Guideline: School bags and backpacks are LOW tier regardless of brand. Premium electronics are MEDIUM+.",
     'Return strict JSON with keys: "tier", "item_type", "reason".',
     `Title: ${title}`,
     `Description: ${description}`,
@@ -68,6 +86,30 @@ function parseClassification(raw: string): OpenAIClassification | null {
   return null;
 }
 
+function detectDeterministicClassification({
+  title,
+  description,
+}: {
+  title: string;
+  description: string;
+}): ItemClassificationResult | null {
+  const combinedText = `${title} ${description}`.toLowerCase();
+  const matchedBagKeyword = LOW_VALUE_BAG_KEYWORDS.find((keyword) =>
+    combinedText.includes(keyword),
+  );
+
+  if (matchedBagKeyword) {
+    return {
+      tier: "low",
+      item_type: "bag",
+      reason: `Detected "${matchedBagKeyword}" in the report. Bags and backpacks are treated as low-value campus items even when branded.`,
+      estimated_points: getEstimatedPointsForTier("low"),
+    };
+  }
+
+  return null;
+}
+
 function buildFallbackResult(
   title: string,
   description: string,
@@ -90,6 +132,15 @@ export async function classifyItemValue({
   description: string;
   imageUrl?: string | null;
 }): Promise<ItemClassificationResult> {
+  const deterministicClassification = detectDeterministicClassification({
+    title,
+    description,
+  });
+
+  if (deterministicClassification) {
+    return deterministicClassification;
+  }
+
   const apiKey = process.env.OPENAI_API_KEY;
 
   if (!apiKey) {

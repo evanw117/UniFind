@@ -58,6 +58,11 @@ alter table public.lost_and_found_items enable row level security;
 
 drop policy if exists "Enable read access for all users" on public.lost_and_found_items;
 drop policy if exists "Enable insert for all users" on public.lost_and_found_items;
+drop policy if exists "Enable reporter update" on public.lost_and_found_items;
+drop policy if exists "Enable reporter delete" on public.lost_and_found_items;
+drop policy if exists "Enable users self read" on public.users;
+drop policy if exists "Enable users self insert" on public.users;
+drop policy if exists "Enable users self update" on public.users;
 
 create policy "Enable read access for all users"
 on public.lost_and_found_items for select
