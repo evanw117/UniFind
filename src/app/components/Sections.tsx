@@ -1,5 +1,3 @@
-"use client";
-
 import Container from "../../ui/Container";
 
 
@@ -187,13 +185,13 @@ export function ARBoard() {
             </div>
 
             <div className="flex flex-wrap items-center gap-3">
-              <button
-                onClick={() => alert("WebAR demo coming soon")}
+              <a
+                href="/howitworks"
                 className="rounded-full bg-sky-700/90 px-5 py-2.5 text-sm font-semibold text-white
                            shadow-[0_6px_14px_rgba(2,24,43,0.15)] hover:bg-sky-600 transition"
               >
                 Launch WebAR
-              </button>
+              </a>
               <a
                 href="#how"
                 className="rounded-full bg-white px-5 py-2.5 text-sm font-semibold text-slate-800 ring-1 ring-slate-200
@@ -208,5 +206,4 @@ export function ARBoard() {
     </section>
   );
 }
-
 

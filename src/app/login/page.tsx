@@ -12,6 +12,8 @@ import { useAuth } from '../AuthContext';
 export default function LoginPage() {
   const router = useRouter();
   const { session, isLoading } = useAuth(); 
+  const oauthRedirectTo =
+    typeof window !== "undefined" ? `${window.location.origin}/auth/callback` : undefined;
 
   // --- 1. REDIRECTION LOGIC ---
   useEffect(() => {
@@ -88,7 +90,7 @@ export default function LoginPage() {
             
             // 🎯 FIX: Added 'azure' for Microsoft/Outlook sign-in
             providers={['google', 'azure']} 
-            redirectTo={`${window.location.origin}/dashboard`}
+            redirectTo={oauthRedirectTo}
           />
         ) : (
           <div className="text-center p-4 bg-red-50 border border-red-200 rounded-lg">
